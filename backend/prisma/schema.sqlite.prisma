@@ -1,0 +1,129 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  phone     String   @unique
+  childName String?  @map("child_name")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  purchases UserPurchase[]
+  orders    Order[]
+
+  @@map("users")
+}
+
+model Admin {
+  id           Int      @id @default(autoincrement())
+  username     String   @unique
+  passwordHash String   @map("password_hash")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@map("admins")
+}
+
+model Grade {
+  id        Int      @id @default(autoincrement())
+  name      String
+  sortOrder Int      @default(0) @map("sort_order")
+  status    Int      @default(1)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  packages CoursePackage[]
+
+  @@map("grades")
+}
+
+model Teacher {
+  id        Int      @id @default(autoincrement())
+  name      String
+  title     String?
+  bio       String?
+  phone     String?
+  wechat    String?
+  status    Int      @default(1)
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("teachers")
+}
+
+model CoursePackage {
+  id          Int      @id @default(autoincrement())
+  gradeId     Int      @map("grade_id")
+  name        String
+  description String?
+  coverUrl    String?  @map("cover_url")
+  price       Decimal
+  status      Int      @default(1)
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  grade     Grade          @relation(fields: [gradeId], references: [id])
+  lessons   Lesson[]
+  purchases UserPurchase[]
+  orders    Order[]
+
+  @@map("course_packages")
+}
+
+model Lesson {
+  id        Int      @id @default(autoincrement())
+  packageId Int      @map("package_id")
+  title     String
+  ossKey    String   @map("oss_key")
+  duration  Int      @default(0)
+  sortOrder Int      @default(0) @map("sort_order")
+  status    Int      @default(1)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  package CoursePackage @relation(fields: [packageId], references: [id])
+
+  @@map("lessons")
+}
+
+model Order {
+  id         Int       @id @default(autoincrement())
+  orderNo    String    @unique @map("order_no")
+  userId     Int       @map("user_id")
+  packageId  Int       @map("package_id")
+  amount     Decimal
+  payChannel String    @map("pay_channel")
+  status     String    @default("pending")
+  tradeNo    String?   @map("trade_no")
+  paidAt     DateTime? @map("paid_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+
+  user     User          @relation(fields: [userId], references: [id])
+  package  CoursePackage @relation(fields: [packageId], references: [id])
+  purchase UserPurchase?
+
+  @@map("orders")
+}
+
+model UserPurchase {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @map("user_id")
+  packageId   Int      @map("package_id")
+  orderId     Int      @unique @map("order_id")
+  purchasedAt DateTime @default(now()) @map("purchased_at")
+
+  user    User          @relation(fields: [userId], references: [id])
+  package CoursePackage @relation(fields: [packageId], references: [id])
+  order   Order         @relation(fields: [orderId], references: [id])
+
+  @@unique([userId, packageId])
+  @@map("user_purchases")
+}

@@ -1,0 +1,10 @@
+node_modules/
+dist/
+uploads/
+.env
+.env.local
+*.db
+backend/dev.db
+backend/dev.db-journal
+backend/certs/
+.DS_Store

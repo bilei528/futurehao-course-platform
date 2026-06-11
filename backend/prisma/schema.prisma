@@ -1,0 +1,129 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  phone     String   @unique @db.VarChar(20)
+  childName String?  @map("child_name") @db.VarChar(50)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  purchases UserPurchase[]
+  orders    Order[]
+
+  @@map("users")
+}
+
+model Admin {
+  id           Int      @id @default(autoincrement())
+  username     String   @unique @db.VarChar(50)
+  passwordHash String   @map("password_hash") @db.VarChar(255)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@map("admins")
+}
+
+model Grade {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(100)
+  sortOrder Int      @default(0) @map("sort_order")
+  status    Int      @default(1)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  packages CoursePackage[]
+
+  @@map("grades")
+}
+
+model Teacher {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(100)
+  title     String?  @db.VarChar(100)
+  bio       String?  @db.Text
+  phone     String?  @db.VarChar(20)
+  wechat    String?  @db.VarChar(50)
+  status    Int      @default(1)
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("teachers")
+}
+
+model CoursePackage {
+  id          Int      @id @default(autoincrement())
+  gradeId     Int      @map("grade_id")
+  name        String   @db.VarChar(200)
+  description String?  @db.Text
+  coverUrl    String?  @map("cover_url") @db.VarChar(500)
+  price       Decimal  @db.Decimal(10, 2)
+  status      Int      @default(1)
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  grade     Grade          @relation(fields: [gradeId], references: [id])
+  lessons   Lesson[]
+  purchases UserPurchase[]
+  orders    Order[]
+
+  @@map("course_packages")
+}
+
+model Lesson {
+  id        Int      @id @default(autoincrement())
+  packageId Int      @map("package_id")
+  title     String   @db.VarChar(200)
+  ossKey    String   @map("oss_key") @db.VarChar(500)
+  duration  Int      @default(0)
+  sortOrder Int      @default(0) @map("sort_order")
+  status    Int      @default(1)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  package CoursePackage @relation(fields: [packageId], references: [id])
+
+  @@map("lessons")
+}
+
+model Order {
+  id        Int       @id @default(autoincrement())
+  orderNo   String    @unique @map("order_no") @db.VarChar(64)
+  userId    Int       @map("user_id")
+  packageId Int       @map("package_id")
+  amount    Decimal   @db.Decimal(10, 2)
+  payChannel String   @map("pay_channel") @db.VarChar(20)
+  status    String    @default("pending") @db.VarChar(20)
+  tradeNo   String?   @map("trade_no") @db.VarChar(128)
+  paidAt    DateTime? @map("paid_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  user    User          @relation(fields: [userId], references: [id])
+  package CoursePackage @relation(fields: [packageId], references: [id])
+  purchase UserPurchase?
+
+  @@map("orders")
+}
+
+model UserPurchase {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @map("user_id")
+  packageId   Int      @map("package_id")
+  orderId     Int      @unique @map("order_id")
+  purchasedAt DateTime @default(now()) @map("purchased_at")
+
+  user    User          @relation(fields: [userId], references: [id])
+  package CoursePackage @relation(fields: [packageId], references: [id])
+  order   Order         @relation(fields: [orderId], references: [id])
+
+  @@unique([userId, packageId])
+  @@map("user_purchases")
+}
