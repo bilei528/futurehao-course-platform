@@ -12,6 +12,7 @@ import {
 import { IsInt, IsString, Length, Matches, MinLength } from 'class-validator';
 import { AdminService } from './admin.service';
 import { StudentAdminService } from './student-admin.service';
+import { OrderAdminService } from './order-admin.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { AdminAuthGuard } from '../../common/guards/admin-auth.guard';
 
@@ -44,6 +45,7 @@ export class AdminController {
   constructor(
     private admin: AdminService,
     private studentAdmin: StudentAdminService,
+    private orderAdmin: OrderAdminService,
   ) {}
 
   @Post('login')
@@ -85,5 +87,17 @@ export class AdminController {
   @UseGuards(JwtAuthGuard, AdminAuthGuard)
   deleteStudent(@Param('userId', ParseIntPipe) userId: number) {
     return this.studentAdmin.deleteStudent(userId);
+  }
+
+  @Get('orders/stats')
+  @UseGuards(JwtAuthGuard, AdminAuthGuard)
+  getOrderStats() {
+    return this.orderAdmin.getPaymentStats();
+  }
+
+  @Get('orders')
+  @UseGuards(JwtAuthGuard, AdminAuthGuard)
+  listOrders(@Query('keyword') keyword?: string, @Query('status') status?: string) {
+    return this.orderAdmin.listOrders(keyword, status);
   }
 }

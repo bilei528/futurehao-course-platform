@@ -4,6 +4,7 @@ import LoginView from '../views/LoginView.vue';
 import CoursesView from '../views/CoursesView.vue';
 import StudentsView from '../views/StudentsView.vue';
 import TeachersView from '../views/TeachersView.vue';
+import OrdersView from '../views/OrdersView.vue';
 
 const router = createRouter({
   history: createWebHistory(),
@@ -18,6 +19,7 @@ const router = createRouter({
         { path: 'courses', name: 'courses', component: CoursesView },
         { path: 'teachers', name: 'teachers', component: TeachersView },
         { path: 'students', name: 'students', component: StudentsView },
+        { path: 'orders', name: 'orders', component: OrdersView },
       ],
     },
   ],

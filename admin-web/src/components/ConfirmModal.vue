@@ -3,7 +3,7 @@
     <div class="modal card">
       <h3>{{ title }}</h3>
       <p class="modal-warn">{{ warning }}</p>
-      <div v-if="details.length" class="modal-info">
+      <div v-if="details?.length" class="modal-info">
         <p v-for="item in details" :key="item.label">
           <span>{{ item.label }}</span>{{ item.value }}
         </p>

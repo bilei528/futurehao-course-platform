@@ -7,6 +7,7 @@
         <router-link to="/courses">课程管理</router-link>
         <router-link to="/teachers">教师管理</router-link>
         <router-link to="/students">学员管理</router-link>
+        <router-link to="/orders">购买记录</router-link>
       </nav>
       <button class="btn-danger logout" @click="auth.logout()">退出</button>
     </aside>
