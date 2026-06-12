@@ -97,7 +97,7 @@ export class AdminController {
 
   @Get('orders')
   @UseGuards(JwtAuthGuard, AdminAuthGuard)
-  listOrders(@Query('keyword') keyword?: string, @Query('status') status?: string) {
-    return this.orderAdmin.listOrders(keyword, status);
+  listOrders(@Query('keyword') keyword?: string) {
+    return this.orderAdmin.listOrders(keyword);
   }
 }

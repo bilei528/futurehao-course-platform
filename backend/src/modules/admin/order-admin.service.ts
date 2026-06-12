@@ -48,7 +48,6 @@ function channelLabel(channel: string) {
 
 function statusLabel(status: string) {
   if (status === 'paid') return '已支付';
-  if (status === 'pending') return '待支付';
   return status;
 }
 
@@ -56,21 +55,21 @@ function statusLabel(status: string) {
 export class OrderAdminService {
   constructor(private prisma: PrismaService) {}
 
-  async listOrders(keyword?: string, status?: string) {
+  async listOrders(keyword?: string) {
     const kw = keyword?.trim();
-    const where: Record<string, unknown> = {};
-
-    if (status && status !== 'all') {
-      where.status = status;
-    }
+    const where: Record<string, unknown> = { status: 'paid' };
 
     if (kw) {
-      where.OR = [
-        { orderNo: { contains: kw } },
-        { user: { phone: { contains: kw } } },
-        { user: { childName: { contains: kw } } },
-        { package: { name: { contains: kw } } },
-        { package: { grade: { name: { contains: kw } } } },
+      where.AND = [
+        {
+          OR: [
+            { orderNo: { contains: kw } },
+            { user: { phone: { contains: kw } } },
+            { user: { childName: { contains: kw } } },
+            { package: { name: { contains: kw } } },
+            { package: { grade: { name: { contains: kw } } } },
+          ],
+        },
       ];
     }
 
@@ -117,14 +116,13 @@ export class OrderAdminService {
       }
     }
 
-    const [paidOnlineCount, adminGrantCount, pendingCount] = await Promise.all([
+    const [paidOnlineCount, adminGrantCount] = await Promise.all([
       this.prisma.order.count({
         where: { status: 'paid', payChannel: { in: [...ONLINE_CHANNELS] } },
       }),
       this.prisma.order.count({
         where: { status: 'paid', payChannel: 'admin' },
       }),
-      this.prisma.order.count({ where: { status: 'pending' } }),
     ]);
 
     return {
@@ -135,7 +133,6 @@ export class OrderAdminService {
       todayRevenue: todayRevenue.toFixed(2),
       todayCount,
       adminGrantCount,
-      pendingCount,
     };
   }
 }

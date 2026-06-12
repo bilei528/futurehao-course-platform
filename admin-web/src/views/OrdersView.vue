@@ -2,7 +2,7 @@
   <div>
     <section class="card stats">
       <h3>支付统计</h3>
-      <p class="desc">仅统计在线支付（微信/支付宝）已支付订单；管理员免费开通不计入收入</p>
+      <p class="desc">仅统计已支付订单；管理员免费开通不计入收入</p>
       <div class="stat-grid">
         <div class="stat-item highlight">
           <span class="stat-label">累计收入</span>
@@ -32,10 +32,6 @@
           <span class="stat-label">管理员开通</span>
           <strong class="stat-value">{{ stats.adminGrantCount }} 次</strong>
         </div>
-        <div class="stat-item">
-          <span class="stat-label">待支付订单</span>
-          <strong class="stat-value">{{ stats.pendingCount }}</strong>
-        </div>
       </div>
     </section>
 
@@ -47,13 +43,8 @@
           placeholder="搜索订单号、学员、手机号、课程"
           @keyup.enter="loadOrders"
         />
-        <select v-model="status">
-          <option value="all">全部状态</option>
-          <option value="paid">已支付</option>
-          <option value="pending">待支付</option>
-        </select>
         <button class="btn-primary" @click="loadOrders">查询</button>
-        <button v-if="keyword || status !== 'all'" class="btn-outline" @click="resetFilter">清除</button>
+        <button v-if="keyword" class="btn-outline" @click="resetFilter">清除</button>
       </div>
 
       <p v-if="loading" class="desc">加载中...</p>
@@ -68,9 +59,7 @@
               <th>课程</th>
               <th>金额</th>
               <th>支付方式</th>
-              <th>状态</th>
               <th>支付时间</th>
-              <th>下单时间</th>
             </tr>
           </thead>
           <tbody>
@@ -83,11 +72,7 @@
               <td>{{ order.package.gradeName }} / {{ order.package.name }}</td>
               <td class="amount">{{ formatAmount(order.amount, order.payChannel) }}</td>
               <td>{{ order.payChannelLabel }}</td>
-              <td>
-                <span :class="['badge', order.status]">{{ order.statusLabel }}</span>
-              </td>
-              <td>{{ order.paidAt ? formatDate(order.paidAt) : '-' }}</td>
-              <td>{{ formatDate(order.createdAt) }}</td>
+              <td>{{ order.paidAt ? formatDate(order.paidAt) : formatDate(order.createdAt) }}</td>
             </tr>
           </tbody>
         </table>
@@ -106,8 +91,6 @@ interface OrderItem {
   amount: string;
   payChannel: string;
   payChannelLabel: string;
-  status: string;
-  statusLabel: string;
   paidAt: string | null;
   createdAt: string;
   user: { id: number; phone: string; childName: string | null };
@@ -122,13 +105,11 @@ const stats = reactive({
   todayRevenue: '0.00',
   todayCount: 0,
   adminGrantCount: 0,
-  pendingCount: 0,
 });
 
 const orders = ref<OrderItem[]>([]);
 const loading = ref(true);
 const keyword = ref('');
-const status = ref('all');
 
 function formatDate(value: string) {
   return new Date(value).toLocaleString('zh-CN');
@@ -149,7 +130,6 @@ async function loadOrders() {
   try {
     const params: Record<string, string> = {};
     if (keyword.value.trim()) params.keyword = keyword.value.trim();
-    if (status.value !== 'all') params.status = status.value;
     const { data } = await api.get('/admin/orders', { params });
     orders.value = data;
   } finally {
@@ -159,7 +139,6 @@ async function loadOrders() {
 
 function resetFilter() {
   keyword.value = '';
-  status.value = 'all';
   loadOrders();
 }
 
@@ -212,7 +191,7 @@ onMounted(async () => {
 
 .filter-row {
   display: grid;
-  grid-template-columns: 1fr 140px auto auto;
+  grid-template-columns: 1fr auto auto;
   gap: 10px;
   margin-bottom: 16px;
 }
@@ -260,22 +239,5 @@ th {
 small {
   color: #9ca3af;
   font-size: 12px;
-}
-
-.badge {
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-size: 12px;
-}
-
-.badge.paid {
-  background: #dcfce7;
-  color: #166534;
-}
-
-.badge.pending {
-  background: #fef3c7;
-  color: #92400e;
 }
 </style>
